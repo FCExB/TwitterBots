@@ -1,3 +1,46 @@
+var http = require("http"),
+    mongojs = require("mongojs"); 
+
+
+var uri = 'localhost:27017/RemindMe';
+var db = mongojs.connect(uri, ["tweets"]);
+
+var server = http.createServer(function(request, response) {
+	response.writeHead(200, {"Content-Type": "text/html"});
+
+        db.tweets.find({}, function(err, records) {
+	    if(err) {
+                console.log("There was an error executing the database query.");
+                response.end();
+                return;
+            }
+            
+            var html = '<h1>Tweets!</h2>',
+                i = records.length;
+
+            while(i--) {
+               var user = 'undefined';
+               if (typeof records[i].user != 'undefined') {
+                   user = records[i].user.screen_name;
+	       }
+               html += '<p><b>@' + user + ':</b> ' 
+                    + records[i].text 
+               
+               if (typeof records[i].timestamp_ms != 'undefined') {
+                  var date = new Date(parseInt(records[i].timestamp_ms));
+
+                  html += ' <b>Timestamp:</b> ' + date.toUTCString();
+               }
+               html += '</p>';
+            }
+
+            response.write(html);
+            response.end();
+        });
+});
+
+server.listen(3000);
+
 var Twit = require('twit')
 
 var T = new Twit({
@@ -6,14 +49,6 @@ var T = new Twit({
   , access_token:         '2885734899-Ib3OdFxDaCSW3o31FoVuQpDcc2B6LisYAzF9LVK'
   , access_token_secret:  'RSXkSuF0NbvVIhTcCD64YnE0TvWCJbcfSuTYiD7FOutYP'
 })
-
-//
-//  tweet 'hello world!'
-//
-/*T.post('statuses/update', { status: 'hello world!' }, function(err, data, response) {
-  console.log(data)
-})
-*/
 
 
 var stream = T.stream('statuses/filter', { track: 'remind me tomorrow' })
@@ -25,6 +60,8 @@ stream.on('tweet', function (tweet) {
       return;
     }
 
+    db.tweets.insert(tweet);
+
     T.post('statuses/retweet/:id', { id: tweet.id_str }, function(err, data, response) {
         console.log(err);
     });
@@ -32,3 +69,33 @@ stream.on('tweet', function (tweet) {
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' OK, I\'ll try!', 
                                in_reply_to_status_id: tweet.id}, function(err, data, response) {});
 });
+
+
+setInterval(function() {
+    
+        db.tweets.find({}, function(err, records) {
+	    if(err) {
+                console.log("There was an error executing the database query.");
+                response.end();
+                return;
+            }
+            
+            var i = records.length;
+
+            while(i--) {
+               if (typeof records[i].timestamp_ms != 'undefined' && 
+                   typeof records[i].user != 'undefined') {
+                  
+                  if (Date.now() > parseInt(records[i].timestamp_ms) + 60 * 60 * 18 * 1000) {
+                      T.post('statuses/update', 
+                             {status: '@' + records[i].user.screen_name + 
+                                      ' Here\'s your reminder! Have a great day :)', 
+                               in_reply_to_status_id: records[i].id}, 
+                             function(err, data, response) {});
+                      db.tweets.remove(records[i]);
+                  }
+               }
+            }
+        });
+
+}, 60000);
