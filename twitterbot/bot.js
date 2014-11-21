@@ -66,10 +66,6 @@ stream.on('tweet', function (tweet) {
 
     db.tweets.insert(tweet);
 
-    T.post('statuses/retweet/:id', { id: tweet.id_str }, function(err, data, response) {
-        console.log(err);
-    });
-
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' OK, I\'ll try!', 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {
         console.log(err);
