@@ -30,6 +30,10 @@ var server = http.createServer(function(request, response) {
                   var date = new Date(parseInt(records[i].timestamp_ms));
 
                   html += ' <b>Timestamp:</b> ' + date.toUTCString();
+                  
+                  html += ' <b><a href=\"http://twitter.com/' + user + '/status/' + records[i].id_str +
+                          '\"> Link </a></b>'; 
+
                }
                html += '</p>';
             }
@@ -51,12 +55,12 @@ var T = new Twit({
 })
 
 
-var stream = T.stream('statuses/filter', { track: 'remind me tomorrow' })
+var stream = T.stream('statuses/filter', { track: 'someone remind me tomorrow' })
 
 stream.on('tweet', function (tweet) {
     console.log('@' + tweet.user.screen_name + ': ' + tweet.text);
     
-    if (tweet.user.screen_name == 'RemindMe__') {
+    if (tweet.user.screen_name == 'RemindMe__' || tweet.text.slice(0, 2) == 'RT') {
       return;
     }
 
@@ -67,7 +71,9 @@ stream.on('tweet', function (tweet) {
     });
 
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' OK, I\'ll try!', 
-                               in_reply_to_status_id: tweet.id}, function(err, data, response) {});
+                               in_reply_to_status_id: tweet.id_str}, function(err, data, response) {
+        console.log(err);
+    });
 });
 
 
@@ -90,8 +96,10 @@ setInterval(function() {
                       T.post('statuses/update', 
                              {status: '@' + records[i].user.screen_name + 
                                       ' Here\'s your reminder! Have a great day :)', 
-                               in_reply_to_status_id: records[i].id}, 
-                             function(err, data, response) {});
+                               in_reply_to_status_id: records[i].id_str}, 
+                             function(err, data, response) {
+                                  console.log(err);
+                             });
                       db.tweets.remove(records[i]);
                   }
                }
