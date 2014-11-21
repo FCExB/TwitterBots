@@ -27,9 +27,9 @@ var server = http.createServer(function(request, response) {
                     + records[i].text 
                
                if (typeof records[i].timestamp_ms != 'undefined') {
-                  var date = new Date(parseInt(records[i].timestamp_ms));
+                  var targetMilli = parseInt(records[i].timestamp_ms) + 60 * 60 * 18 * 1000;
 
-                  html += ' <b>Timestamp:</b> ' + date.toUTCString();
+                  html += ' <b>Time to reminder:</b> ' + Math.round(((targetMilli - Date.now())/ (1000 * 60)));
                   
                   html += ' <b><a href=\"http://twitter.com/' + user + '/status/' + records[i].id_str +
                           '\"> Link </a></b>'; 
