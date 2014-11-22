@@ -1,6 +1,7 @@
 var http = require("http"),
     mongojs = require("mongojs"); 
 
+var moment = require('moment');
 
 var uri = 'localhost:27017/RemindMe';
 var db = mongojs.connect(uri, ["tweets"]);
@@ -69,15 +70,13 @@ stream.on('tweet', function (tweet) {
     reminderTime.setHours(9);
     reminderTime.setMinutes(0); 
 
-    tweet.user.utc_offset;
-
     tweet.reminder_time = reminderTime.getTime() + parseInt(tweet.user.utc_offset) * 60 * 60 * 1000;
 
     db.tweets.insert(tweet);
 
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' OK, I\'ll try!', 
-                               in_reply_to_status_id: tweet.id_str}, function(err, data, response) {
-        console.log(err);
+                               in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
+          console.log(err);
     });
 });
 
