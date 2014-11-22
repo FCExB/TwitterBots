@@ -21,8 +21,9 @@ var server = http.createServer(function(request, response) {
             while(i--) {
                var user = 'undefined';
                if (typeof records[i].user != 'undefined') {
-                   user = records[i].user.screen_name;
-	       }
+                   user = records[i].user.screen_name
+               }
+
                html += '<p><b>@' + user + ':</b> ' 
                     + records[i].text 
                
@@ -35,7 +36,12 @@ var server = http.createServer(function(request, response) {
                           '\"> Link </a></b>'; 
 
                }
+               if (typeof records[i].reminder_time != 'undefined') {
+                   html += ' <b>NEW</b>"
+               }
                html += '</p>';
+
+               
             }
 
             response.write(html);
