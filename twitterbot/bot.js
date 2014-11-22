@@ -8,44 +8,37 @@ var db = mongojs.connect(uri, ["tweets"]);
 var server = http.createServer(function(request, response) {
 	response.writeHead(200, {"Content-Type": "text/html"});
 
-        db.tweets.find({}, function(err, records) {
+        var html = '<h1>Tweets!</h2>';
+        
+        db.tweets.find().sort({reminder_time: 1}).forEach(function(err, tweet) {
 	    if(err) {
                 console.log("There was an error executing the database query.");
                 response.end();
                 return;
             }
             
-            var html = '<h1>Tweets!</h2>',
-                i = records.length;
-
-            while(i--) {
-               var user = 'undefined';
-               if (typeof records[i].user != 'undefined') {
-                   user = records[i].user.screen_name
-               }
-
-               html += '<p><b>@' + user + ':</b> ' 
-                    + records[i].text 
-               
-               if (typeof records[i].timestamp_ms != 'undefined') {
-                  var targetMilli = parseInt(records[i].timestamp_ms) + 60 * 60 * 18 * 1000;
-
-                  html += ' <b>Time to reminder:</b> ' + Math.round(((targetMilli - Date.now())/ (1000 * 60)));
-                  
-                  html += ' <b><a href=\"http://twitter.com/' + user + '/status/' + records[i].id_str +
-                          '\"> Link </a></b>'; 
-
-               }
-               if (typeof records[i].reminder_time != 'undefined') {
-                   html += ' <b>NEW</b>';
-               }
-               html += '</p>';
-
-               
+            if (!tweet) {
+                response.write(html);
+                response.end();
+                return;
             }
+           
+            var user = tweet.user.screen_name;
 
-            response.write(html);
-            response.end();
+            html += '<p>';
+               
+            var timeToReminder = new Date(tweet.reminder_time - Date.now());
+            html += timeToReminder.getHours() + ':' + timeToReminder.getMinutes() + ':' + timeToReminder.getSeconds();
+
+            html += ' <b>@' + user + ':</b> ' + tweet.text; 
+               
+
+            html += ' <a href=\"http://twitter.com/' + user + '/status/' + tweet.id_str + '\"> Tweet </a>'; 
+
+            html += '</p>';   
+            
+            console.log(tweet);
+            console.log();
         });
 });
 
@@ -70,17 +63,17 @@ stream.on('tweet', function (tweet) {
       return;
     }
 
-    var data = {};
+    var reminderTime = new Date(tweet.created_at);
 
-    data.id = tweet.id;
-    data.id_str = tweet.id_str;
-    data.timestamp_ms = tweet.timestamp_ms;
-    data.user = tweet.user;
-    data.text = tweet.text;
+    reminderTime.setDate(reminderTime.getDate() + 1);
+    reminderTime.setHours(9);
+    reminderTime.setMinutes(0); 
 
-    data.reminder_time = parseInt(tweet.timestamp_ms) + 60 * 60 * 18 * 1000;
+    tweet.user.utc_offset;
 
-    db.tweets.insert(data);
+    tweet.reminder_time = reminderTime.getTime() + parseInt(tweet.user.utc_offset) * 60 * 60 * 1000;
+
+    db.tweets.insert(tweet);
 
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' OK, I\'ll try!', 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {
@@ -89,47 +82,32 @@ stream.on('tweet', function (tweet) {
 });
 
 
-setInterval(function() {
+var sendReminders = function() {
     
-        db.tweets.find({}, function(err, records) {
+        db.tweets.find({reminder_time:{$lte:Date.now()}}).forEach(function(err, tweet) {
 	    if(err) {
                 console.log("There was an error executing the database query.");
-                response.end();
                 return;
             }
-            
-            var i = records.length;
 
-            while(i--) {
-                  
-                  if (typeof records[i].reminder_time !== 'undefined') {
-
-                  if (Date.now() > parseInt(records[i].reminder_time)) {
+            if(!tweet) {
+               return;
+            }
+                 
+            if (Date.now() > parseInt(tweet.reminder_time)) {
                       T.post('statuses/update', 
-                             {status: '@' + records[i].user.screen_name + 
+                             {status: '@' + tweet.user.screen_name + 
                                       ' Here\'s your reminder! Have a great day :)', 
-                               in_reply_to_status_id: records[i].id_str}, 
+                               in_reply_to_status_id: tweet.id_str}, 
                              function(err, data, response) {
                                   console.log(err);
                              });
-                      db.tweets.remove(records[i]);
-                  }
-
-                  } else {
-
-                  if (Date.now() > parseInt(records[i].timestamp_ms) + 60 * 60 * 18 * 1000) {
-                      T.post('statuses/update', 
-                             {status: '@' + records[i].user.screen_name + 
-                                      ' Here\'s your reminder! Have a great day :)', 
-                               in_reply_to_status_id: records[i].id_str}, 
-                             function(err, data, response) {
-                                  console.log(err);
-                             });
-                      db.tweets.remove(records[i]);
-                  }
-
-                  }
+                      db.tweets.remove(tweet);
             }
         });
 
-}, 60000);
+};
+
+sendReminders();
+
+setInterval(sendReminders, 60000);
