@@ -94,16 +94,14 @@ var sendReminders = function() {
                return;
             }
                  
-            if (Date.now() > parseInt(tweet.reminder_time)) {
-                      T.post('statuses/update', 
-                             {status: '@' + tweet.user.screen_name + 
-                                      ' Here\'s your reminder! Have a great day :)', 
+            T.post('statuses/update', 
+                        {status: '@' + tweet.user.screen_name + 
+                                    ' Here\'s your reminder! Have a great day :)', 
                                in_reply_to_status_id: tweet.id_str}, 
-                             function(err, data, response) {
-                                  console.log(err);
-                             });
-                      db.tweets.remove(tweet);
-            }
+                 function(err, data, response) {
+                                 console.log(err);
+                 });
+            db.tweets.remove(tweet);
         });
 
 };
