@@ -37,7 +37,7 @@ var server = http.createServer(function(request, response) {
 
                }
                if (typeof records[i].reminder_time != 'undefined') {
-                   html += ' <b>NEW</b>"
+                   html += ' <b>NEW</b>';
                }
                html += '</p>';
 
