@@ -64,7 +64,17 @@ stream.on('tweet', function (tweet) {
       return;
     }
 
-    db.tweets.insert(tweet);
+    var data = {};
+
+    data.id = tweet.id;
+    data.id_str = tweet.id_str;
+    data.timestamp_ms = tweet.timestamp_ms;
+    data.user = tweet.user;
+    data.text = tweet.text;
+
+    data.reminder_time = parseInt(tweet.timestamp_ms) + 60 * 60 * 18 * 1000;
+
+    db.tweets.insert(data);
 
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' OK, I\'ll try!', 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {
@@ -85,9 +95,22 @@ setInterval(function() {
             var i = records.length;
 
             while(i--) {
-               if (typeof records[i].timestamp_ms != 'undefined' && 
-                   typeof records[i].user != 'undefined') {
                   
+                  if (typeof records[i].reminder_time !== 'undefined') {
+
+                  if (Date.now() > parseInt(records[i].reminder_time)) {
+                      T.post('statuses/update', 
+                             {status: '@' + records[i].user.screen_name + 
+                                      ' Here\'s your reminder! Have a great day :)', 
+                               in_reply_to_status_id: records[i].id_str}, 
+                             function(err, data, response) {
+                                  console.log(err);
+                             });
+                      db.tweets.remove(records[i]);
+                  }
+
+                  } else {
+
                   if (Date.now() > parseInt(records[i].timestamp_ms) + 60 * 60 * 18 * 1000) {
                       T.post('statuses/update', 
                              {status: '@' + records[i].user.screen_name + 
@@ -98,7 +121,8 @@ setInterval(function() {
                              });
                       db.tweets.remove(records[i]);
                   }
-               }
+
+                  }
             }
         });
 
