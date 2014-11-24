@@ -72,7 +72,7 @@ stream.on('tweet', function (tweet) {
     reminderTime.setHours(9);
     reminderTime.setMinutes(30); 
 
-    tweet.reminder_time = reminderTime.getTime() + parseInt(tweet.user.utc_offset) * 1000;
+    tweet.reminder_time = reminderTime.getTime() - parseInt(tweet.user.utc_offset) * 1000;
 
     db.tweets.insert(tweet);
 
