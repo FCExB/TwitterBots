@@ -46,9 +46,6 @@ var server = http.createServer(function(request, response) {
             html += ' <b>Reminder At:</b> ' + reminder.toUTCString();
 
             html += '</p>';   
-            
-            console.log(tweet);
-            console.log();
         });
 });
 
@@ -69,30 +66,68 @@ var stream = T.stream('statuses/filter', { track: 'someone remind me tomorrow' }
 stream.on('tweet', function (tweet) {
     console.log('@' + tweet.user.screen_name + ': ' + tweet.text);
     
-    if (tweet.user.screen_name == 'RemindMe__' || tweet.text.slice(0, 2) == 'RT') {
+    if (tweet.text.slice(0, 2) == 'RT') {
       return;
     }
 
     var reminderTime = new Date(tweet.created_at);
-
+ 
     if (tweet.user.utc_offset === null) {
         reminderTime.setTime(reminderTime.getTime() + 18 * 60 * 60 * 1000);
         tweet.reminder_time = reminderTime.getTime();
     } else {
-        reminderTime.setTime(reminderTime.getTime() + 24 * 60 * 60 * 1000 + parseInt(tweet.user.utc_offset) * 1000);
+        var offset = parseInt(tweet.user.utc_offset) * 1000;
+        reminderTime.setTime(reminderTime.getTime() + 24 * 60 * 60 * 1000 + offset);
         reminderTime.setHours(9);
         reminderTime.setMinutes(30); 
-        tweet.reminder_time = reminderTime.getTime() - parseInt(tweet.user.utc_offset) * 1000;
+        tweet.reminder_time = reminderTime.getTime() - offset;
     }
-
-    db.tweets.insert(tweet);
 
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' OK, I\'ll try!', 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
-          console.log(err);
-    });
+          if (err) {
+              console.log(err);
+              return;
+          }
+          
+          tweet.botReplyId = data.id_str;
+          
+          db.tweets.insert(tweet);
+    });       
 });
 
+
+var mentions = T.stream('statuses/filter', { track: 'RemindMeBot_' })
+
+mentions.on('tweet', function (tweet) {
+
+    console.log("Mentioned!");
+            console.log();
+            console.log(tweet);
+    
+    db.tweets.findOne({botReplyId:tweet.in_reply_to_status_id_str}, function(err, match) {
+        if (err) {
+            console.log(err);
+            return;
+        }
+
+        if (match) {
+            
+            console.log();
+            console.log("This is a reply!!!");
+            console.log();
+            console.log(match);
+            
+            if (tweet.text.indexOf("thanks") > -1 || tweet.text.indexOf("Thanks") > -1) {
+                T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' No worries :)', 
+                               in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
+                    console.log(err);
+                });       
+            }
+        }
+    });
+
+});
 
 var sendReminders = function() {
     
