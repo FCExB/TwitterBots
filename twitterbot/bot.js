@@ -123,7 +123,7 @@ mentions.on('tweet', function (tweet) {
             for (var i = 0; i < length; i++) {
                 var time = moment(words[i], ['HH:mm', 'H:mm'], true);
 
-                if (time.isValid() && match.user.utc_offset != null) {
+                if (time.isValid() && match.user.utc_offset !== null) {
                     var offset = parseInt(match.user.utc_offset) * 1000;
                     var reminderTime = new Date(match.reminder_time + offset);
 
