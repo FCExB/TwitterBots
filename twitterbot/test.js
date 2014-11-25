@@ -1,9 +1,6 @@
-var date = new Date();
+var moment = require('moment');
 
-date = date + 1;
-console.log(date);
+var time = moment('asda23', 'HH:mm', true);
 
-date.setHours(9);
-
-console.log(date);
-
+console.log(time);
+console.log(time.isValid());

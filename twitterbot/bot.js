@@ -66,24 +66,28 @@ var stream = T.stream('statuses/filter', { track: 'someone remind me tomorrow' }
 stream.on('tweet', function (tweet) {
     console.log('@' + tweet.user.screen_name + ': ' + tweet.text);
     
-    if (tweet.text.slice(0, 2) == 'RT') {
+    if (tweet.text.indexOf('RT') > -1) {
       return;
     }
 
     var reminderTime = new Date(tweet.created_at);
  
+    var replyString;
+
     if (tweet.user.utc_offset === null) {
         reminderTime.setTime(reminderTime.getTime() + 18 * 60 * 60 * 1000);
         tweet.reminder_time = reminderTime.getTime();
+        replyString = ' OK, I\'ll try!';
     } else {
         var offset = parseInt(tweet.user.utc_offset) * 1000;
         reminderTime.setTime(reminderTime.getTime() + 24 * 60 * 60 * 1000 + offset);
         reminderTime.setHours(9);
         reminderTime.setMinutes(30); 
         tweet.reminder_time = reminderTime.getTime() - offset;
+        replyString = ' I\'ll try! At what time? (HH:MM 24 hour clock is all I speak though!)';
     }
 
-    T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' OK, I\'ll try!', 
+    T.post('statuses/update', {status: '@' + tweet.user.screen_name + replyString, 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
           if (err) {
               console.log(err);
@@ -112,17 +116,34 @@ mentions.on('tweet', function (tweet) {
         }
 
         if (match) {
+           
+            var words = tweet.text.split(' ');
             
-            console.log();
-            console.log("This is a reply!!!");
-            console.log();
-            console.log(match);
-            
-            if (tweet.text.indexOf("thanks") > -1 || tweet.text.indexOf("Thanks") > -1) {
-                T.post('statuses/update', {status: '@' + tweet.user.screen_name + ' No worries :)', 
+            var length = words.length;
+            for (var i = 0; i < length; i++) {
+                var time = moment(words[i], 'HH:mm', true);
+
+                if (time.isValid() && match.user.utc_offset) {
+                    var offset = parseInt(match.user.utc_offset) * 1000;
+                    var reminderTime = new Date(match.reminder_time + offset);
+
+                    reminderTime.setHours(time.hours());
+                    reminderTime.setMinutes(time.minutes()); 
+
+                    db.tweets.remove(match);
+                    match.reminder_time = reminderTime.getTime() - offset;
+                    db.tweets.insert(match);
+                    
+                    T.post('statuses/update', {status: '@' + tweet.user.screen_name + 
+                                                       ' Ok! Your reminder is set for ' + words[i] + '.', 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
-                    console.log(err);
-                });       
+                        if(err) {
+                            console.log(err);
+                        }
+                    });       
+                    
+                    break;
+                }
             }
         }
     });
