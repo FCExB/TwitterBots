@@ -167,7 +167,9 @@ var sendReminders = function() {
                                     ' Here\'s your reminder! Have a great day :)', 
                                in_reply_to_status_id: tweet.id_str}, 
                  function(err, data, response) {
-                                 console.log(err);
+                     if (err) {
+                         console.log(err);
+                     }
                  });
             db.tweets.remove(tweet);
         });
