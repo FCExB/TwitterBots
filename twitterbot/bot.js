@@ -29,14 +29,21 @@ var server = http.createServer(function(request, response) {
             html += '<p>';
                
             var timeToReminder = new Date(tweet.reminder_time - Date.now());
-            html += timeToReminder.getHours() + ':' + timeToReminder.getMinutes() + ':' + timeToReminder.getSeconds();
+            html += ((timeToReminder.getDay()-4)*24 + timeToReminder.getHours()) + ':' + timeToReminder.getMinutes() 
+                       + ':' + timeToReminder.getSeconds();
 
             html += ' <b>@' + user + ':</b> ' + tweet.text; 
                
 
             html += ' <a href=\"http://twitter.com/' + user + '/status/' + tweet.id_str + '\"> Tweet </a>'; 
-
+            html += '<br> -  -  -  -  -  - '
             html += ' <b>UTC Offset:</b> ' + tweet.user.utc_offset;
+
+            html += ' <b>Created At:</b> ' + tweet.created_at;
+
+            var reminder = new Date(tweet.reminder_time);
+
+            html += ' <b>Reminder At:</b> ' + reminder.toUTCString();
 
             html += '</p>';   
             
@@ -68,11 +75,15 @@ stream.on('tweet', function (tweet) {
 
     var reminderTime = new Date(tweet.created_at);
 
-    reminderTime.setTime(reminderTime.getTime() + 24 * 60 * 60 * 1000);
-    reminderTime.setHours(9);
-    reminderTime.setMinutes(30); 
-
-    tweet.reminder_time = reminderTime.getTime() - parseInt(tweet.user.utc_offset) * 1000;
+    if (tweet.user.utc_offset === null) {
+        reminderTime.setTime(reminderTime.getTime() + 18 * 60 * 60 * 1000);
+        tweet.reminder_time = reminderTime.getTime();
+    } else {
+        reminderTime.setTime(reminderTime.getTime() + 24 * 60 * 60 * 1000 + parseInt(tweet.user.utc_offset) * 1000);
+        reminderTime.setHours(9);
+        reminderTime.setMinutes(30); 
+        tweet.reminder_time = reminderTime.getTime() - parseInt(tweet.user.utc_offset) * 1000;
+    }
 
     db.tweets.insert(tweet);
 
