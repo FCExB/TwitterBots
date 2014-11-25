@@ -61,7 +61,7 @@ var T = new Twit({
 })
 
 
-var stream = T.stream('statuses/filter', { track: 'someone remind me tomorrow' })
+var stream = T.stream('statuses/filter', { track: 'someone remind me to tomorrow' })
 
 stream.on('tweet', function (tweet) {
     console.log('@' + tweet.user.screen_name + ': ' + tweet.text);
@@ -84,7 +84,7 @@ stream.on('tweet', function (tweet) {
         reminderTime.setHours(9);
         reminderTime.setMinutes(30); 
         tweet.reminder_time = reminderTime.getTime() - offset;
-        replyString = ' I\'ll try! At what time? (HH:MM 24 hour clock is all I speak though!)';
+        replyString = ' I\'ll try! At what time? (HH:MM 24 hour clock would be great!)';
     }
 
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + replyString, 
@@ -121,9 +121,9 @@ mentions.on('tweet', function (tweet) {
             
             var length = words.length;
             for (var i = 0; i < length; i++) {
-                var time = moment(words[i], 'HH:mm', true);
+                var time = moment(words[i], ['HH:mm', 'H:mm'], true);
 
-                if (time.isValid() && match.user.utc_offset) {
+                if (time.isValid() && match.user.utc_offset != null) {
                     var offset = parseInt(match.user.utc_offset) * 1000;
                     var reminderTime = new Date(match.reminder_time + offset);
 
