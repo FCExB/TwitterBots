@@ -61,7 +61,7 @@ var T = new Twit({
 })
 
 
-var stream = T.stream('statuses/filter', { track: 'someone remind me to tomorrow' })
+var stream = T.stream('statuses/filter', { track: 'someone remind me to tomorrow, somebody remind me to tomorrow, RemindMeBot_ remind me to tomorrow' })
 
 stream.on('tweet', function (tweet) {
     console.log('@' + tweet.user.screen_name + ': ' + tweet.text);
@@ -79,7 +79,11 @@ stream.on('tweet', function (tweet) {
     } else {
         replyString = ' I\'ll try! At what time? (HH:MM 24 hour clock would be great!)';
     }
-        
+    
+    if (tweet.text.indexOf('today') > -1) {
+
+    }
+   
     reminderTime.setTime(reminderTime.getTime() + 19 * 60 * 60 * 1000);
     tweet.reminder_time = reminderTime.getTime();
 
