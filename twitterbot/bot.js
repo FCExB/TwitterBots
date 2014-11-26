@@ -121,7 +121,7 @@ mentions.on('tweet', function (tweet) {
             
             var length = words.length;
             for (var i = 0; i < length; i++) {
-                var time = moment(words[i], ['HH:mm', 'H:mm'], true);
+                var time = moment(words[i], ['HH:mm', 'H:mm', 'HH.mm', 'H.mm', 'h:mma', 'h.mma', 'ha'], true);
 
                 if (time.isValid() && match.user.utc_offset !== null) {
                     var offset = parseInt(match.user.utc_offset) * 1000;
