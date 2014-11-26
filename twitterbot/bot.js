@@ -75,17 +75,13 @@ stream.on('tweet', function (tweet) {
     var replyString;
 
     if (tweet.user.utc_offset === null) {
-        reminderTime.setTime(reminderTime.getTime() + 18 * 60 * 60 * 1000);
-        tweet.reminder_time = reminderTime.getTime();
         replyString = ' OK, I\'ll try!';
     } else {
-        var offset = parseInt(tweet.user.utc_offset) * 1000;
-        reminderTime.setTime(reminderTime.getTime() + 24 * 60 * 60 * 1000 + offset);
-        reminderTime.setHours(9);
-        reminderTime.setMinutes(30); 
-        tweet.reminder_time = reminderTime.getTime() - offset;
         replyString = ' I\'ll try! At what time? (HH:MM 24 hour clock would be great!)';
     }
+        
+    reminderTime.setTime(reminderTime.getTime() + 19 * 60 * 60 * 1000);
+    tweet.reminder_time = reminderTime.getTime();
 
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + replyString, 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
