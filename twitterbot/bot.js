@@ -65,7 +65,7 @@ var T = new Twit({
 })
 
 
-var stream = T.stream('statuses/filter', { track: 'someone remind me to tomorrow, somebody remind me to tomorrow, RemindMeBot_ remind me to' })
+var stream = T.stream('statuses/filter', { track: 'someone remind me to tomorrow, somebody remind me to tomorrow, RemindMeBot_ remind to' })
 
 stream.on('tweet', function (tweet) {
     console.log('@' + tweet.user.screen_name + ': ' + tweet.text);
@@ -130,7 +130,8 @@ mentions.on('tweet', function (tweet) {
             
             var length = words.length;
             for (var i = 0; i < length; i++) {
-                var time = moment(words[i], ['HH:mm', 'HHmm', 'H:mm', 'HH.mm', 'H.mm', 'h:mma', 'h.mma', 'ha'], true);
+                var time = moment(words[i], ['HH:mm', 'HHmm', 'H:mm', 'HH.mm', 
+                                             'H.mm', 'h:mma', 'h:mm a', 'h.mma', 'ha'], true);
 
                 if (time.isValid() && match.user.utc_offset !== null) {
                     var offset = parseInt(match.user.utc_offset) * 1000;
@@ -170,10 +171,19 @@ var sendReminders = function() {
             if(!tweet) {
                return;
             }
+
+            var mentions = '@'+ tweet.user.screen_name;
+
+            var length = tweet.entities.user_mentions.length;
+            for (var i = 0; i < length; i++) {
+                var mention = tweet.entities.user_mentions[i];
+                if (mention.screen_name != 'RemindMeBot_') {
+                    mentions += ' @' + mention.screen_name;
+                }
+            }
                  
             T.post('statuses/update', 
-                        {status: '@' + tweet.user.screen_name + 
-                                    ' Here\'s your reminder! Have a great day :)', 
+                        {status: mentions + ' Here\'s your reminder! Have a great day :)', 
                                in_reply_to_status_id: tweet.id_str}, 
                  function(err, data, response) {
                      if (err) {
