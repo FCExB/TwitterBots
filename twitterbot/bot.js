@@ -9,8 +9,9 @@ var db = mongojs.connect(uri, ["tweets"]);
 var server = http.createServer(function(request, response) {
 	response.writeHead(200, {"Content-Type": "text/html"});
 
-        var html = '<h1>Tweets!</h2>';
-        
+        var html = '<h1>Tweets!</h1>';
+        var count = 0;        
+
         db.tweets.find().sort({reminder_time: 1}).forEach(function(err, tweet) {
 	    if(err) {
                 console.log("There was an error executing the database query.");
@@ -19,11 +20,14 @@ var server = http.createServer(function(request, response) {
             }
             
             if (!tweet) {
+                html += '<h2><b>Number of tweets:</b> ' + count  + '</h2>';
                 response.write(html);
                 response.end();
                 return;
             }
            
+            count++;
+ 
             var user = tweet.user.screen_name;
 
             html += '<p>';
@@ -121,7 +125,7 @@ mentions.on('tweet', function (tweet) {
             
             var length = words.length;
             for (var i = 0; i < length; i++) {
-                var time = moment(words[i], ['HH:mm', 'H:mm', 'HH.mm', 'H.mm', 'h:mma', 'h.mma', 'ha'], true);
+                var time = moment(words[i], ['HH:mm', 'HHmm', 'H:mm', 'HH.mm', 'H.mm', 'h:mma', 'h.mma', 'ha'], true);
 
                 if (time.isValid() && match.user.utc_offset !== null) {
                     var offset = parseInt(match.user.utc_offset) * 1000;
