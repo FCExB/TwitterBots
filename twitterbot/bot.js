@@ -65,7 +65,7 @@ var T = new Twit({
 })
 
 
-var stream = T.stream('statuses/filter', { track: 'someone remind me to tomorrow, somebody remind me to tomorrow, RemindMeBot_ remind me to tomorrow' })
+var stream = T.stream('statuses/filter', { track: 'someone remind me to tomorrow, somebody remind me to tomorrow, RemindMeBot_ remind me to' })
 
 stream.on('tweet', function (tweet) {
     console.log('@' + tweet.user.screen_name + ': ' + tweet.text);
@@ -75,21 +75,26 @@ stream.on('tweet', function (tweet) {
     }
 
     var reminderTime = new Date(tweet.created_at);
+
+    var day;
  
+    if (tweet.text.indexOf('tomorrow') > -1) {
+        day = 'tomorrow';
+        reminderTime.setTime(reminderTime.getTime() + 19 * 60 * 60 * 1000);
+    } else {
+        day = 'today';
+        reminderTime.setTime(reminderTime.getTime() + 1 * 60 * 60 * 1000);
+    }
+
+    tweet.reminder_time = reminderTime.getTime();
+    
     var replyString;
 
     if (tweet.user.utc_offset === null) {
         replyString = ' OK, I\'ll try!';
     } else {
-        replyString = ' I\'ll try! At what time? (HH:MM 24 hour clock would be great!)';
+        replyString = ' I\'ll try! What time ' + day + '? (HH:MM 24 hour clock would be great!)';
     }
-    
-    if (tweet.text.indexOf('today') > -1) {
-
-    }
-   
-    reminderTime.setTime(reminderTime.getTime() + 19 * 60 * 60 * 1000);
-    tweet.reminder_time = reminderTime.getTime();
 
     T.post('statuses/update', {status: '@' + tweet.user.screen_name + replyString, 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
