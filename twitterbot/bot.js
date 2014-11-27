@@ -78,7 +78,7 @@ stream.on('tweet', function (tweet) {
 
     var day;
  
-    if (tweet.text.indexOf('tomorrow') > -1) {
+    if (tweet.text.indexOf('tomorrow') > -1 || tweet.text.indexOf('Tomorrow') > -1) {
         day = 'tomorrow';
         reminderTime.setTime(reminderTime.getTime() + 19 * 60 * 60 * 1000);
     } else {
@@ -126,7 +126,7 @@ mentions.on('tweet', function (tweet) {
 
         if (match) {
            
-            var words = tweet.text.split(' ');
+            var words = tweet.text.split(/\n| /);
             
             var length = words.length;
             for (var i = 0; i < length; i++) {
