@@ -41,7 +41,13 @@ var server = http.createServer(function(request, response) {
 
             html += ' <a href=\"http://twitter.com/' + user + '/status/' + tweet.id_str + '\"> Tweet </a>'; 
             html += '<br> -  -  -  -  -  - '
-            html += ' <b>UTC Offset:</b> ' + tweet.user.utc_offset;
+            html += ' <b>UTC Offset:</b> '
+     
+            if (tweet.user.utc_offset) {
+                html += (tweet.user.utc_offset/(60*60));
+            } else {
+                html += 'null';
+            }
 
             html += ' <b>Created At:</b> ' + tweet.created_at;
 
