@@ -133,7 +133,7 @@ mentions.on('tweet', function (tweet) {
         if (match && (tweet.user.id_str == match.user.id_str || 
                       tweet.user.screen_name == 'FCExB' || tweet.user.screen_name == 'RemindMeBot_')) {
 
-            var time = moment(text, ['hh:mma', 'hh:mm a', 'h:mma', 'h:mm a', 'h.mma', 'ha', 
+            var time = moment(tweet.text, ['hh:mma', 'hh:mm a', 'h:mma', 'h:mm a', 'h.mma','hh.mm a','ha', 
                                      'HH:mm', 'HHmm', 'H:mm', 'HH.mm', 'H.mm']);
 
             if (time.isValid() && match.user.utc_offset !== null) {
@@ -145,14 +145,19 @@ mentions.on('tweet', function (tweet) {
 
                 db.tweets.remove(match);
                 match.reminder_time = reminderTime.getTime() - offset;
-                db.tweets.insert(match);
                     
                 T.post('statuses/update', {status: '@' + tweet.user.screen_name + 
-                                          ' Ok! Your reminder is set for ' + words[i] + '.', 
+                                          ' Ok! Your reminder is set for ' + time.format('hh:mma') + 
+                                   '. Reply to this if you want to change the time :)', 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
                    if(err) {
                        console.log(err);
+                       
+                   } else {
+                       match.botReplyId = data.id_str;
                    }
+                   
+                   db.tweets.insert(match);
                 });       
                     
             } else {
