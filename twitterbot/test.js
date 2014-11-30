@@ -1,14 +1,12 @@
 var moment = require('moment');
 
-var text = '@RemindMeBot_ 07:20 tomorrow morning would be good please';
-
-var words = text.split(' ');
-
-for (var i = 0; i < words.length; i++) {
-	var time = moment(words[i], ['HH:mm', 'H:mm'], true);
-	console.log(words[i]);
-        console.log(time.isValid());
-}
+var text = process.argv[2];
 
 
+var time = moment(text, ['hh:mma', 'hh:mm a', 'h:mma', 'h:mm a', 'h.mma', 'ha', 'HH:mm', 'HHmm', 'H:mm', 'HH.mm', 'H.mm', ]);
 
+console.log(text);
+console.log(time.isValid());
+console.log(time.format('hh:mma'));
+console.log();
+console.log(time);
