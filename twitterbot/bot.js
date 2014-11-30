@@ -147,7 +147,7 @@ mentions.on('tweet', function (tweet) {
                 match.reminder_time = reminderTime.getTime() - offset;
                     
                 T.post('statuses/update', {status: '@' + tweet.user.screen_name + 
-                                          ' Ok! Your reminder is set for ' + time.format('hh:mma') + 
+                                          ' Ok! Your reminder is set for ' + time.format('h:mma') + 
                                    '. Reply to this if you want to change the time :)', 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
                    if(err) {
@@ -162,7 +162,7 @@ mentions.on('tweet', function (tweet) {
                     
             } else {
                 T.post('statuses/update', {status: '@' + tweet.user.screen_name + 
-                                          ' Sorry I couldn\'t read that :/ Maybe @fcexb can help?' + words[i] + '.', 
+                                          ' Sorry I couldn\'t read that :/ Maybe @fcexb can help?', 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
                    if(err) {
                        console.log(err);
