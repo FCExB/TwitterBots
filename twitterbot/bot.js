@@ -182,7 +182,7 @@ var sendReminders = function() {
                 return;
             }
 
-            if(!tweet) {
+            if(!tweet || (Date.now() < new Date(tweet.created_at).getTime() + 10 * 60 * 1000) ) {
                return;
             }
 
