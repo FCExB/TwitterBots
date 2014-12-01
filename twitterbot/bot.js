@@ -130,13 +130,13 @@ mentions.on('tweet', function (tweet) {
             return;
         }
 
-        if (match && (tweet.user.id_str == match.user.id_str || 
+        if (match && match.user.utc_offset !== null && (tweet.user.id_str == match.user.id_str || 
                       tweet.user.screen_name == 'FCExB' || tweet.user.screen_name == 'RemindMeBot_')) {
 
             var time = moment(tweet.text, ['hh:mma', 'hh:mm a', 'h:mma', 'h:mm a', 'h.mma','hh.mm a','ha', 
                                      'HH:mm', 'HHmm', 'H:mm', 'HH.mm', 'H.mm']);
 
-            if (time.isValid() && match.user.utc_offset !== null) {
+            if (time.isValid() && time.format('h:mma') != '12:00am') {
                 var offset = parseInt(match.user.utc_offset) * 1000;
                 var reminderTime = new Date(match.reminder_time + offset);
 
