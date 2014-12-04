@@ -83,8 +83,10 @@ stream.on('tweet', function (tweet) {
     var reminderTime = new Date(tweet.created_at);
 
     var day;
- 
-    if (tweet.text.indexOf('tomorrow') > -1 || tweet.text.indexOf('Tomorrow') > -1) {
+
+    if (tweet.text.indexOf('tomorrow') > -1 || 
+        tweet.text.indexOf('TOMORROW') > -1)||
+        tweet.text.indexOf('Tomorrow') > -1) {
         day = 'tomorrow';
         reminderTime.setTime(reminderTime.getTime() + 19 * 60 * 60 * 1000);
     } else {
