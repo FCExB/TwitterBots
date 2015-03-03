@@ -137,6 +137,10 @@ mentions.on('tweet', function (tweet) {
 
             var time = moment(tweet.text, ['hh:mma', 'hh:mm a', 'h:mma', 'h:mm a', 'h.mma','hh.mm a','ha', 
                                      'HH:mm', 'HHmm', 'H:mm', 'HH.mm', 'H.mm']);
+    
+            if (tweet.text.indexOf('noon') > -1 || tweet.text.indexOf('Noon') > -1) {
+              time = moment("12pm", 'ha');
+            } 
 
             if (time.isValid() && time.format('h:mma') != '12:00am') {
                 var offset = parseInt(match.user.utc_offset) * 1000;
@@ -164,7 +168,7 @@ mentions.on('tweet', function (tweet) {
                     
             } else {
                 T.post('statuses/update', {status: '@' + tweet.user.screen_name + 
-                                          ' Sorry I couldn\'t read that :/ Maybe @fcexb can help?', 
+                                          ' Sorry I couldn\'t read that :/', 
                                in_reply_to_status_id: tweet.id_str}, function(err, data, response) {    
                    if(err) {
                        console.log(err);
