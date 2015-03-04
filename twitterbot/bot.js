@@ -118,7 +118,7 @@ stream.on('tweet', function (tweet) {
 });
 
 
-var mentions = T.stream('statuses/filter', { track: 'RemindMeBot_' })
+var mentions = T.stream('statuses/filter', { track: 'RemindMeBot' })
 
 mentions.on('tweet', function (tweet) {
 
@@ -133,7 +133,7 @@ mentions.on('tweet', function (tweet) {
         }
 
         if (match && match.user.utc_offset !== null && (tweet.user.id_str == match.user.id_str || 
-                      tweet.user.screen_name == 'FCExB' || tweet.user.screen_name == 'RemindMeBot_')) {
+                      tweet.user.screen_name == 'FCExB' || tweet.user.screen_name == 'RemindMeBot')) {
 
             var time = moment(tweet.text, ['hh:mma', 'hh:mm a', 'h:mma', 'h:mm a', 'h.mma','hh.mm a','ha', 
                                      'HH:mm', 'HHmm', 'H:mm', 'HH.mm', 'H.mm']);
@@ -197,7 +197,7 @@ var sendReminders = function() {
             var length = tweet.entities.user_mentions.length;
             for (var i = 0; i < length; i++) {
                 var mention = tweet.entities.user_mentions[i];
-                if (mention.screen_name != 'RemindMeBot_') {
+                if (mention.screen_name != 'RemindMeBot') {
                     mentions += ' @' + mention.screen_name;
                 }
             }
