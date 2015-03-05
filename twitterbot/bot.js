@@ -61,17 +61,15 @@ var server = http.createServer(function(request, response) {
 
 server.listen(3000);
 
-var Twit = require('twit')
+var Twit = require('twit');
 
-var T = new Twit({
-    consumer_key:         'FOHJfcWiJE2tFBGrZtqMM4wIh'
-  , consumer_secret:      'n9NZQhYKzKJp431hIdlorNKLYWKVgNIElBIaE4sQ71pbyBa82K'
-  , access_token:         '2885734899-Ib3OdFxDaCSW3o31FoVuQpDcc2B6LisYAzF9LVK'
-  , access_token_secret:  'RSXkSuF0NbvVIhTcCD64YnE0TvWCJbcfSuTYiD7FOutYP'
-})
+var fs = require('fs');
+var secrets = JSON.parse(fs.readFileSync('secrets.json', 'utf8'));
+
+var T = new Twit(secrets);
 
 
-var stream = T.stream('statuses/filter', { track: 'someone remind me to tomorrow, somebody remind me to tomorrow, RemindMeBot remind to' })
+var stream = T.stream('statuses/filter', { track: 'someone remind me to tomorrow, somebody remind me to tomorrow, RemindMeBot remind to' });
 
 stream.on('tweet', function (tweet) {
     console.log('@' + tweet.user.screen_name + ': ' + tweet.text);
