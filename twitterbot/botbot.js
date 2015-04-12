@@ -1,3 +1,5 @@
+var username = 'TopOfTheBots';
+
 
 var Twit = require('twit');
 
@@ -31,7 +33,7 @@ var retweetSomething = function(ids) {
     });
 };
 
-var followFromPage = function(p, friendIds) {
+var followFromPage = function(p, friendIds, ignoreIds) {
     
     var done = false;
 
@@ -56,8 +58,9 @@ var followFromPage = function(p, friendIds) {
 
             console.log("--- Trying to follow @" + user.screen_name + " ---");
 
-            if( friendIds.indexOf(user.id) == -1 &&
-                user.lang == "en") {
+            if( user.lang == "en" && 
+                friendIds.indexOf(user.id) == -1 &&
+                ignoreIds.indexOf(user.id) == -1) {
 
                 var waitInner = true; 
 
@@ -97,7 +100,7 @@ var followFromPage = function(p, friendIds) {
        if (wait) {
             setTimeout(loop, 1000);
        } else if (!done) {
-            followFromPage(p+1, friendIds);
+            followFromPage(p+1, friendIds, ignoreIds);
        }
     };
 
@@ -105,21 +108,127 @@ var followFromPage = function(p, friendIds) {
 };
 
 var update = function() {
-    T.get('friends/ids', { screen_name: 'TheBotLovingBot' }, 
+    T.get('friends/ids', { screen_name: username }, 
     function (err, friends, response) {
         
         if (err) { console.log(err); return; };
 
         retweetSomething(friends.ids);
         setTimeout(function() { return retweetSomething(friends.ids); }, 
-                   15 * 60 * 1000);
+                   50 * 60 * 1000);
 
-
-        followFromPage(1, friends.ids);
-       
+        db.ignore.find(function(err, ignorelist) {
+            followFromPage(1, friends.ids, ignorelist);
+        });
     });
 };
 
+var mongojs = require("mongojs");
+
+var uri = 'localhost:27017/RemindMe';
+var db = mongojs.connect(uri, ["ignore"]);
+
+var ignoreme = T.stream('statuses/filter', { track: username + ' #ignoreme' })
+
+ignoreme.on('tweet', function (tweet) {
+    db.ignore.insert(tweet.user.id);
+
+    T.post('friendships/destroy', {user_id: tweet.user.id},
+    function(err, data, response) {
+        if (err) { console.log(err); return; };
+        T.post('statuses/update', {status: '@' + tweet.user.screen_name + 
+                               ' No problem. Sorry if I\'ve been annoying :/' +
+                               ' Use #stopignoringme if you change your mind...', 
+                               in_reply_to_status_id: tweet.id_str},
+        function(err, data, response) {    
+            if (err) { console.log(err); return; };
+        });
+    }); 
+
+});
+
+var followme = T.stream('statuses/filter', { track: username + ' #stopignoringme' })
+
+followme.on('tweet', function (tweet) {
+    db.ignore.remove(tweet.user.id);
+    
+    T.post('friendships/create', {user_id: tweet.user.id},
+    function(err, data, response) {
+        if (err) { console.log(err); return; };
+        T.post('statuses/update', {status: '@' + tweet.user.screen_name + 
+                               ' Followed!', 
+                               in_reply_to_status_id: tweet.id_str},
+        function(err, data, response) {    
+            if (err) { console.log(err); return; };
+        });
+    });
+});
+
+var ignorethem = T.stream('statuses/filter', { track: username + ' #ignorethem' })
+
+ignorethem.on('tweet', function (tweet) {
+    
+    var mentions = '@' + tweet.user.screen_name; 
+    
+    var length = tweet.entities.user_mentions.length;
+    for (var i = 0; i < length; i++) {
+        var mention = tweet.entities.user_mentions[i];
+        
+        if (mention.screen_name != username) {
+            mentions += ' @' + mention.screen_name;
+            db.ignore.insert(mention.id);
+
+            T.post('friendships/destroy', {user_id: mention.id},
+            function(err, data, response) {
+                if (err) { console.log(err); };
+            }); 
+        }
+    }
+
+    
+    T.post('statuses/update', {status: mentions + 
+                               ' Ok. If you say so...', 
+                               in_reply_to_status_id: tweet.id_str},
+    function(err, data, response) {    
+        if (err) { console.log(err); return; };
+    });
+});
+
+var followthem = T.stream('statuses/filter', { track: username + ' #followthem' })
+
+followthem.on('tweet', function (tweet) {
+
+    var mentions = '@' + tweet.user.screen_name; 
+
+    var count = 0;
+    var length = tweet.entities.user_mentions.length;
+    for (var i = 0; i < length; i++) {
+        var mention = tweet.entities.user_mentions[i];
+        if (mention.screen_name != username) {
+            mentions += ' @' + mention.screen_name;
+            count++;
+            db.ignore.remove(mention.id);
+            
+            T.post('friendships/create', {user_id: mention.id},
+            function(err, data, response) {
+                if (err) { console.log(err); return; };
+            });
+        }
+    }
+
+    if (count < 1) return;
+    
+    
+    T.post('statuses/update', {status: mentions + 
+                               ' All done!', 
+                               in_reply_to_status_id: tweet.id_str},
+    function(err, data, response) {    
+        if (err) { console.log(err); return; };
+    });
+
+});
+
+
 update();
 
-setInterval(update, 60 * 60 * 1000);
+setInterval(update, 100 * 60 * 1000);
