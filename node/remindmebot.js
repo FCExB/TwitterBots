@@ -64,7 +64,7 @@ server.listen(3000);
 var Twit = require('twit');
 
 var fs = require('fs');
-var secrets = JSON.parse(fs.readFileSync('secrets.json', 'utf8'));
+var secrets = JSON.parse(fs.readFileSync('secrets-remindmebot.json', 'utf8'));
 
 var T = new Twit(secrets);
 

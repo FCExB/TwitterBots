@@ -4,7 +4,7 @@ var username = 'TopOfTheBots';
 var Twit = require('twit');
 
 var fs = require('fs');
-var secrets = JSON.parse(fs.readFileSync('secrets-botbot.json', 'utf8'));
+var secrets = JSON.parse(fs.readFileSync('secrets-topofthebots.json', 'utf8'));
 
 var T = new Twit(secrets);
 
