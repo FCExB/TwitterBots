@@ -19,7 +19,7 @@ var retweetSomething = function(ids) {
     console.log("--- User: " + id + " chosen ---");
 
     T.get('users/lookup', {user_id: [id]}, function(err, users, response){
-        if (err) { console.log(err); return; };
+        if (err || users[0].status === undefined) { console.log(err); return; };
         T.post('statuses/retweet/:id', 
             { id: users[0].status.id_str }, function(err, data, response) {
             if (err) {
