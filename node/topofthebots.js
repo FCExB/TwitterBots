@@ -115,7 +115,7 @@ var update = function() {
 
         retweetSomething(friends.ids);
         setTimeout(function() { return retweetSomething(friends.ids); }, 
-                   50 * 60 * 1000);
+                   2.5 * 60 * 60 * 1000);
 
         db.ignore.find(function(err, ignorelist) {
             followFromPage(1, friends.ids, ignorelist);
@@ -231,4 +231,4 @@ followthem.on('tweet', function (tweet) {
 
 update();
 
-setInterval(update, 100 * 60 * 1000);
+setInterval(update, 4.5 * 60 * 60 * 1000);
