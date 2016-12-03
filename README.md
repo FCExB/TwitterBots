@@ -1,8 +1,22 @@
 Twitter Bots
 ===========
 
+Two Twitter bots built using Node.js. 
+See them in action at [@RemindMeBot](http://twitter.com/RemindMeBot) and [@TopOfTheBots](http://twitter.com/TopOfTheBots).
 
-A few twitter bots built with:
+## Setup
+
+Install
+'''
+sudo ./install.sh
+'''
+
+Run
+'''
+forever start remindmebot.js
+'''
+
+## Tech Used
 
 node.js
 
