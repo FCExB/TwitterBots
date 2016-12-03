@@ -6,12 +6,12 @@ if (( $EUID != 0 )); then
     exit
 fi
 
-echo Installin mongodb...
+echo Installing mongodb...
 apt-get install mongodb
 
 echo
 echo Installing node...
-apt-get install nodejs-legacy
+apt-get install nodejs
 
 echo
 echo Installing npm...
